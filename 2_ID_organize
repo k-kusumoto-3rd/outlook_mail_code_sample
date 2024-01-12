@@ -1,0 +1,27 @@
+Sub test3()
+
+    Dim myRng As Range, cn As Long
+    Dim c As Range 
+    Dim sht As Worksheet
+    Dim DBsht As Worksheet
+
+    ReDim myData (1 To 10000, 1 To 1) '空白でないセルのデータを配列に格納します 
+    Set Sht = Worksheets("AID記載サーバ")
+    Set DBsht= Worksheets("AID記載誤り_DB")
+    Set myRng = DBsht.Range("I2:JM1000") '値があるかを判断するセル範囲
+
+        cn = 0 'cnの開始値を1とするため、ここでは0を設定します。
+
+        For Each In myRng 'セル範囲を1個づつチェックします。 
+            If c.Value <> "" Then 'セルの値が でない場合セルに値を入力します。 
+                cn = cn + 1 'セルの値が""きない場合はcの値をカウントアップします 
+                myData (cn, 1) = c.value 
+            End If
+        Next c
+
+    '配列のデータをセルに書き出します
+    sht.Range("C2").Resize(cn,1).Value = MyData
+    '重複して取得したデータの削除を行います
+    sht.Range("C:C").RemoveDuplicates Columns:= 1, Header:=xlYes
+
+End Sub
