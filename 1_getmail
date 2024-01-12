@@ -1,0 +1,97 @@
+Sub Outlook受信メール一覧を取り込むエージェントID記載誤り取得 ( )
+
+  'Outlook用の定義 
+  Dim olApp As Outlook Application
+  Dim olNamespace As Outlook.Namespace
+  Dim olFolder As Outlook.MAPIFolder
+  Dim olConItems As Outlook.Items
+  Dim olItem As Object
+
+  'Excel用の定義 
+  Dim wbBook As Workbook
+  Dim wsSheet As Worksheet 
+  Dim InContact Count As Long
+
+  '取得結果を記述する行番号を指定します。 2の場合、2行目のセルから開始される 
+  InContact Count = Cells(Rows.Count, 1).End(xlUp).Row + 1
+
+  '抽出期間の開始日と終了日を指定します。
+  strStart Format("2023/02/01" "yyyy/mm/dd") 開始日を指定
+  strEnd = Format("2023/03/01", "yyyy/mm/dd")終了日を指定
+
+  'スピードアップのためスクリーンの更新を無効にします。 
+  Application.ScreenUpdating = False
+
+  'Excelのブックとワークシートのオブジェクトを設定します。 
+  Set wbBook This Workbook
+  Set wsSheet = wbBook.Worksheets("AID記載り_DB")
+
+  '書き込み先のセルを指定し1行目にタイトルを入力します。
+
+    With wsSheet
+      .Cells(1, 1).Value = "Subject"
+      .Cells(1, 2).Value = "Body"
+      .Cells(1.3).Value = "Received Time"
+
+      '書式を追加します。 
+      with .Range("A1:Z1") 
+        .Font.Bold = True 
+        .Font.ColorIndex = 10
+        .Font.Size = 11
+      End With 
+    End With
+
+  wsSheet.Activate
+
+  'Outlook オブジェクトを設定し、 MAPI名前空間を介してOutlookの連絡先一覧を取得します。
+  Set ol App = New Outlook.Application
+  Set olNamespace ol App Get Namespace("MAPI")
+
+  '既定ユーザーの受信トレイを対象にオブジェクトを取得します。
+  Set olFolder = ol Namespace.GetDefaultFolder (olFolder Inbox).Folders ("自動通知")
+  Set ol ConItemsolfolder Items
+
+  'Restrict メソッドで期間を指定し抽出するメールアイテムを絞り込みます。 
+  Set olConItems = olConitems.Restrict ("[ReceivedTime] >= '" &strStart & "' And [ReceivedTime] <= '" & strEnd & "'")
+
+  For Each olItem In olConItems
+    Debug.Print TypeName (olItem)
+      'アイテムのタイプが "MailItem" だった場合のみ値を取得します。 ※それ以外のタイプの場合はプロパティの構成が異なるためエラーとなります 
+      If TypeName (olItem)= "MailItem" Then
+          '件名 (Subject)にエージェントID記載誤りが含まれるメールのみ取得します。
+         If instr(olitem.Subject, "エージェントID記載誤り") > 0 Then
+            With ollten
+
+              Cells(InContact Count,1).Value = .Subject
+              Cells(Inbontact Count 2).Value = .Body
+              Cells(InContact Count,3).Value = .ReceivedTime
+
+            End With
+             InContact Count = InContactCount + 1
+          End If
+      End If
+  Next olItem
+
+  '重複して取得したデータの削除します。
+    ActiveSheet.Range("A:C").RemoveDuplicates Columns=1 Header:=xlYes
+
+  '行幅を18.75に整えます。 
+    Cells.RowHeight = 18.75
+
+  'A列の2行目以下を基準に昇順に並べ替えます。
+    Range("A2").Current Region.Sort Key1 = Range("A2"), _
+    order:=xlAscending, Orientation:=xlTopToBottom Header :=xlYes
+
+  'オブジェクトを解放します。
+
+  Set olItem = Nothing
+  Set olConItems = Nothing 
+  Set olFolder = Nothing
+  Set olNamespace = Nothing
+  Set olApp Nothing
+
+  'スクリーンの更新を有効にします。
+  Application.ScreenUpdating = True
+
+  MsgBox "Out look受信メールの取り込みが完了しました!", vbInformation
+End Sub
